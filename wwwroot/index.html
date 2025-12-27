@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HUTECH StudyMate - Phân tích bảng điểm & Tư vấn AI</title>
+  <link rel="icon" type="image/x-icon" href="https://hutech.edu.vn/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+  <style>
+    :root {
+      --primary: #e53935;
+      --secondary: #ffb300;
+      --bg: #f5f7fa;
+      --text: #333;
+      --white: #ffffff;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8f9fb;
+      color: var(--text);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .panel {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: var(--primary);
+      margin-top: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    label {
+      font-weight: 500;
+      color: #555;
+    }
+
+    input,
+    select {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      background: #5B6DE3;
+      color: white;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button.secondary {
+      background: #eee;
+      color: #333;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Results Layout */
+    .results-layout {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+
+    .results-main {
+      flex: 1;
+      width: 100%;
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 3px solid #f0f0f0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .results-header h2 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .results-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .field-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .field-inline select {
+      padding: 0.5rem 0.9rem;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field-inline select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1);
+      outline: none;
+    }
+
+    .btn-new {
+      background: linear-gradient(135deg, #5B6DE3 0%, #4a5dc4 100%);
+      padding: 0.6rem 1.2rem;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(91, 109, 227, 0.2);
+      transition: all 0.2s;
+    }
+
+    .btn-new:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(91, 109, 227, 0.3);
+    }
+
+    /* Summary Grid - 4 columns layout */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1200px) {
+      .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+        gap: 0.875rem;
+      }
+    }
+
+    /* Stat Card Styles */
+    .info-box {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 20px;
+      padding: 15px 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      min-height: 120px;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .info-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .info-box::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .info-box:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+    }
+
+    .info-box:hover::before {
+      opacity: 1;
+    }
+
+    /* Color variants with enhanced gradients */
+    .info-box.blue {
+      background: linear-gradient(135deg, #6e96d7 0%, #5a7fc4 100%);
+    }
+
+    .info-box.yellow {
+      background: linear-gradient(135deg, #ffc721 0%, #f0b000 100%);
+    }
+
+    .info-box.light-blue {
+      background: linear-gradient(135deg, #70b5f5 0%, #5a9ee0 100%);
+    }
+
+    .info-box.green {
+      background: linear-gradient(135deg, #25c87c 0%, #1fb56a 100%);
+    }
+
+    .info-label {
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.98);
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      line-height: 1.4;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-label::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 2px;
+    }
+
+    .info-value {
+      font-size: 2.75rem;
+      font-weight: 800;
+      color: white;
+      word-break: break-word;
+      line-height: 1;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      letter-spacing: -0.02em;
+    }
+
+    .info-value.highlight {
+      font-size: 3.25rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th,
+    td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #444;
+    }
+
+    tr:hover {
+      background: #f1f1f1;
+    }
+
+    /* Pagination Styles */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .page-btn,
+    .nav-btn {
+      padding: 0.5rem 1rem;
+      min-width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      border: 1px solid #154CD4;
+      background: #5B6DE3;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .page-btn:hover,
+    .nav-btn:hover {
+      background: #d32f2f;
+      transform: translateY(-2px);
+    }
+
+    .page-btn.active {
+      background: white;
+      color: #05D2ED;
+      border: 2px solid #154CD4;
+      font-weight: 700;
+    }
+
+    .page-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-weight: bold;
+      padding: 0 0.5rem;
+    }
+
+    /* Status Colors */
+    .status-pass {
+      color: #2e7d32;
+      font-weight: 600;
+    }
+
+    .status-fail {
+      color: #c62828;
+      font-weight: 600;
+    }
+
+    .status-unknown {
+      color: #f57c00;
+    }
+
+    /* AI Chat Section */
+    .ai-chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 500px;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .chat-messages-inline {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 1rem;
+      border-radius: 12px;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .user-message {
+      align-self: flex-end;
+      background: var(--primary);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .ai-message {
+      align-self: flex-start;
+      background: white;
+      border: 1px solid #eee;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .chat-input-inline {
+      padding: 1rem;
+      background: white;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 1rem;
+    }
+
+    .chat-input-field {
+      flex: 1;
+      padding: 0.8rem 1.2rem;
+      border: 1px solid #ddd;
+      border-radius: 24px;
+      font-size: 1rem;
+    }
+
+    .chat-send-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 1rem 0;
+      background: #f8f8f8;
+      border-top: 1px solid #e0e0e0;
+      margin-top: 2rem;
+    }
+
+    .footer small {
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .footer a {
+      color: #e53935;
+      text-decoration: none;
+    }
+
+    /* Color Legend */
+    .color-legend {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid #e0e0e0;
+    }
+
+    .legend-list {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .legend-item {
+      white-space: nowrap;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .legend-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .legend-item.correct {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #a5d6a7;
+    }
+
+    tr.correct {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .legend-item.nonacc {
+      background-color: #fff3e0;
+      color: #ef6c00;
+      border: 1px solid #ffcc80;
+    }
+
+    tr.nonacc {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .legend-item.incorrect {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #ef9a9a;
+    }
+
+    tr.incorrect {
+      background-color: #e2361c;
+      color: #ffffff;
+    }
+
+    .legend-item.failed {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px dashed #ef5350;
+    }
+
+    tr.failed {
+      background-color: #E36E5B;
+      color: #ffffff;
+    }
+
+    .legend-item.not-learned {
+      background-color: #f5f5f5;
+      color: #757575;
+      border: 1px dashed #bdbdbd;
+    }
+
+    tr.not-learned {
+      background-color: #e2e3e5;
+      color: #383d41;
+    }
+
+    .legend-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-controls .field-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .legend-controls .field-inline label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #495057;
+      white-space: nowrap;
+    }
+
+    .legend-controls select {
+      font-size: 13px;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      background: white;
+      flex: 1;
+      min-width: 120px;
+      transition: border-color 0.2s;
+    }
+
+    .legend-controls select:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(91, 109, 227, 0.1);
+    }
+
+    @media screen and (max-width: 768px) {
+      .color-legend {
+        padding: 1rem;
+      }
+
+      .legend-list {
+        gap: 8px;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+      }
+
+      .legend-item {
+        font-size: 13px;
+        padding: 0.4rem 0.8rem;
+      }
+
+      .legend-controls {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .legend-controls .field-inline {
+        width: 100%;
+        min-width: unset;
+      }
+    }
+
+    /* Modern Header */
+    .app-header {
+      background: #5B6DE3;
+      color: white;
+      padding: 1.5rem 0;
+      text-align: center;
+      position: relative;
+    }
+
+    .app-header img {
+      height: 70px;
+      border-radius: 12px;
+      background: white;
+      padding: 8px;
+    }
+
+    .app-header h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2.7rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .app-header .intro {
+      font-size: 1.15rem;
+      max-width: 600px;
+      margin: 0;
+    }
+
+    /* Modern Info Section */
+    .info-section {
+      background: #fff8e1;
+      border-radius: 16px;
+      max-width: 900px;
+      margin: 2rem auto 0 auto;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      padding: 2rem;
+    }
+
+    .info-section h2 {
+      color: #d32f2f;
+      margin-top: 0;
+    }
+
+    .info-section ul {
+      font-size: 1.08rem;
+      line-height: 1.7;
+      color: #333;
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+    }
+
+    .info-section ul li {
+      margin-bottom: 0.5rem;
+    }
+
+    .info-section .benefits,
+    .info-section .university-info {
+      display: flex;
+      flex: 1;
+      min-width: 220px;
+      flex-direction: column;
+    }
+
+    .info-section .benefits h3,
+    .info-section .university-info h3 {
+      color: #f57c00;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-section .university-info a {
+      color: #d32f2f;
+    }
+
+    /* Dashboard Section */
+    .dashboard-section {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .dashboard-section h3 {
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      margin: 0 auto;
+    }
+
+    .zoom-controls {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .zoom-btn {
+      padding: 0.5rem 1rem;
+      background: #5B6DE3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .zoom-btn:hover {
+      background: #4a5dc4;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(91, 109, 227, 0.3);
+    }
+
+    .zoom-btn:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      .chart-container {
+        height: 300px;
+      }
+
+      .zoom-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    /* Upload Panel Center */
+    .upload-panel-center {
+      max-width: 800px;
+      margin: 2rem auto;
+    }
+
+    .drop-zone {
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .drop-zone:hover {
+      border-color: var(--primary);
+    }
+
+    /* Đảm bảo nội dung tin nhắn giữ xuống dòng và khoảng trắng */
+    .chat-messages-inline .message-content {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    /*add*/
+    /* Header chung */
+    .app-header {
+      background: 0DDB33;
+      color: white;
+      padding: 1.5rem 0;
+      position: relative;
+      text-align: left;
+      /* không center nữa */
+    }
+
+    /* Khối chứa logo + chữ */
+    .app-header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    /* Logo */
+    .app-header img {
+      height: 70px;
+      border-radius: 12px;
+      background: white;
+      padding: 8px;
+    }
+
+    /* Khối chữ bên phải logo */
+    .app-header-title h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2.7rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .app-header-title .intro {
+      font-size: 1.15rem;
+      max-width: 600px;
+      margin: 0;
+    }
+
+    /* Mobile Responsive Adjustments */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      /* Header Adjustments */
+      .app-header {
+        padding: 2rem 0 1rem 0;
+        /* Increase top padding for auth buttons */
+      }
+
+      .app-header-content {
+        flex-direction: column;
+        text-align: center;
+        padding: 0 1rem;
+        gap: 1rem;
+      }
+
+      .app-header img {
+        height: 60px;
+        margin-bottom: 0.5rem;
+      }
+
+      .app-header-title h1 {
+        font-size: 1.8rem;
+        line-height: 1.2;
+      }
+
+      .app-header-title .intro {
+        font-size: 0.95rem;
+      }
+
+      /* Login/Auth Buttons on Mobile */
+      .app-header>div[style*="position: absolute"] {
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+
+      /* Main Layout Stack */
+      .results-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .info-section {
+        padding: 1.5rem;
+        margin-top: 1rem;
+      }
+
+      .info-section h2 {
+        font-size: 1.5rem;
+      }
+
+      /* Forms */
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .panel {
+        padding: 1.5rem;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .actions button {
+        width: 100%;
+        padding: 0.875rem;
+      }
+
+      /* Results Controls */
+      .results-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        align-items: stretch;
+      }
+
+      .results-header h2 {
+        font-size: 1.75rem;
+      }
+
+      .results-controls {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+      }
+
+      .results-controls .field-inline {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .results-controls .field-inline label {
+        text-align: left;
+        margin-bottom: 0.25rem;
+      }
+
+      .btn-new {
+        width: 100%;
+        text-align: center;
+      }
+
+      /* Legend Controls */
+      .legend-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .legend-controls .field-inline {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+      }
+
+      /* Info Boxes / Stats */
+      .info-value {
+        font-size: 2.25rem;
+      }
+
+      .info-value.highlight {
+        font-size: 2.75rem;
+      }
+
+      /* Tables Scroll */
+      #gradesWrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        min-width: 600px;
+        /* Force scroll */
+      }
+    }
+  </style>
+</head>
+
+<body class="light">
+  <!-- Modern Header with HUTECH branding -->
+  <header class="app-header">
+    <div style="position: absolute; top: 1rem; right: 1rem; display: flex; gap: 10px;">
+      <div id="authButtons">
+        <a href="login.html"
+          style="color: white; text-decoration: none; font-weight: 600; background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px;">Đăng
+          nhập</a>
+      </div>
+      <div id="userMenu" style="display: none; align-items: center; gap: 10px;">
+        <a href="handbook.html"
+          style="color: #e53935; text-decoration: none; font-weight: 600; background: white; padding: 8px 16px; border-radius: 20px;">
+          Sổ tay điện tử</a>
+        <span id="welcomeName" style="color: white; font-weight: 500;"></span>
+        <button id="logoutBtn"
+          style="background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; cursor: pointer;">Đăng
+          xuất</button>
+      </div>
+    </div>
+
+    <div class="app-header-content">
+      <img src="https://hutech.edu.vn/images/logo.png" alt="HUTECH Logo">
+      <div class="app-header-title">
+        <h1>HUTECH StudyMate</h1>
+        <p class="intro">
+          Công cụ hiện đại giúp sinh viên HUTECH phân tích bảng điểm,<br>
+          kiểm tra tiến độ học tập
+          và nhận tư vấn AI cá nhân hóa.
+        </p>
+      </div>
+    </div>
+  </header>
+
+
+  <!-- Modern Info Section -->
+  <section class="info-section" id="infoSection">
+    <h2 style="color: #e53935; margin-top: 0;">Hướng dẫn sử dụng</h2>
+    <ul style="font-size: 1.08rem; line-height: 1.7; color: #333; margin-bottom: 1.5rem;">
+      <li><b>Bước 1: </b> Nhập <span style="color:#e53935;font-weight:600;">MSSV</span> và chọn <span
+          style="color:#e53935;font-weight:600;">Niên khóa</span>, <span
+          style="color:#e53935;font-weight:600;">Khoa/Viện</span> của bạn.</li>
+      <li><b>Bước 2:</b> Tải lên <span style="color:blue;font-weight:600;">bảng điểm Excel (.xlsx, .xls)</span> của
+        bạn. (<a href="https://daotao.hutech.edu.vn/Default.aspx?page=xemdiemthi" target="_blank"
+          style="color:#e53935;">Nhấp vào để lấy bản điểm</a>)</li>
+      <li><b>Bước 3:</b> Nhấn <span style="color:#e53935;font-weight:600;">Phân tích</span> để xem kết quả, thống kê tín
+        chỉ, GPA, và các môn còn thiếu.</li>
+      <li><b>Bước 4:</b> Sử dụng <span style="color:#e53935;font-weight:600;">Trợ lý AI</span> để nhận tư vấn học tập,
+        lộ trình tốt nghiệp, và gợi ý đăng ký môn.</li>
+    </ul>
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+      <div class="benefits" style="flex:1; min-width:220px;">
+        <h3 style="color:#ffb300; margin-bottom:0.5rem;">Lợi ích cho sinh viên HUTECH</h3>
+        <ul style="margin:0; padding-left:1.2rem; color:#444;">
+          <li>Kiểm tra tiến độ học tập, tín chỉ đã tích lũy</li>
+          <li>Phân loại môn học: tích lũy, không tích lũy, ngoài CTĐT</li>
+          <li>Gợi ý môn tự chọn, chuyên ngành phù hợp</li>
+          <li>Chiến lược cải thiện điểm số, GPA</li>
+          <li>Nhận tư vấn AI bằng tiếng Việt</li>
+        </ul>
+      </div>
+      <div class="university-info" style="flex:1; min-width:220px;">
+        <h3 style="color:#ffb300; margin-bottom:0.5rem;">Thông tin về trường HUTECH</h3>
+        <ul style="margin:0; padding-left:1.2rem; color:#444;">
+          <li><b>Địa chỉ:</b> 475A Điện Biên Phủ, P.25, Q.Bình Thạnh, TP.HCM</li>
+          <li><b>Website:</b> <a href="https://hutech.edu.vn" target="_blank" style="color:#e53935;">hutech.edu.vn</a>
+          </li>
+          <li><b>Hotline:</b> (028) 5445 7777</li>
+          <li><b>Fanpage:</b> <a href="https://facebook.com/hutechuniversity" target="_blank"
+              style="color:#e53935;">facebook.com/hutechuniversity</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <main class="container">
+    <!-- Upload Panel - Centered -->
+    <section id="uploadPanel" class="panel upload-panel-center">
+      <h2>Tải lên bảng điểm</h2>
+      <form id="uploadForm" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="mssv">MSSV</label>
+            <input id="mssv" name="mssv" required />
+          </div>
+          <div class="field">
+            <label for="yearSelect">Niên khóa</label>
+            <select id="yearSelect" required disabled>
+              <option value>-- Chọn niên khóa --</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="deptSelect">Khoa / Viện</label>
+            <select id="deptSelect" required disabled>
+              <option value>-- Chọn khoa / viện --</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>File Excel (.xlsx, .xls) – Bảng điểm</label>
+          <div id="dropZone" class="drop-zone">
+            <input type="file" id="file" name="file" accept=".xlsx,.xls" style="display:none" />
+            <span id="dropZoneText">Chọn hoặc kéo thả file (.xlsx, .xls) vào đây</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="submit" id="btnUpload" data-busy-text="Đang xử lý...">Phân tích</button>
+          <button type="reset" class="secondary">Xóa</button>
+        </div>
+      </form>
+      <div id="status" class="status"></div>
+    </section>
+
+    <div class="results-layout hidden">
+      <div class="results-main">
+        <section class="panel results-panel">
+          <div class="results-header">
+            <h2>Kết quả phân tích</h2>
+            <div class="results-controls">
+              <div class="field-inline">
+                <label for="resultYearSelect">Niên khóa:</label>
+                <select id="resultYearSelect">
+                  <option value>-- Chọn niên khóa --</option>
+                </select>
+              </div>
+              <div class="field-inline">
+                <label for="resultDeptSelect">Khoa / Viện:</label>
+                <select id="resultDeptSelect" disabled>
+                  <option value>-- Chọn khoa / viện --</option>
+                </select>
+              </div>
+              <button id="btnNewAnalysis" class="btn-new">Phân tích mới</button>
+            </div>
+          </div>
+          <div id="summary" class="summary-grid hidden"></div>
+
+          <!-- Dashboard Section -->
+          <div id="dashboardSection" class="dashboard-section hidden">
+            <h3>📊 Biểu đồ xu hướng điểm</h3>
+            <div class="chart-container">
+              <canvas id="gpaChart"></canvas>
+            </div>
+            <div class="zoom-controls">
+              <button class="zoom-btn" id="zoomIn">🔍+ Phóng to</button>
+              <button class="zoom-btn" id="zoomOut">🔍- Thu nhỏ</button>
+              <button class="zoom-btn" id="resetZoom">↺ Đặt lại</button>
+            </div>
+          </div>
+
+          <div id="gradesWrapper" class="hidden wide">
+            <h3>Môn đã nhận dạng</h3>
+            <div class="color-legend">
+              <div class="legend-list">
+                <span class="legend-item correct">✓ Tích lũy</span>
+                <span class="legend-item nonacc">⚠ Không tích lũy</span>
+                <span class="legend-item incorrect">✗ Ngoài CTĐT</span>
+                <span class="legend-item failed">✗ Rớt</span>
+                <span class="legend-item not-learned">⬜ Chưa học</span>
+              </div>
+              <div class="legend-controls">
+                <div class="field-inline">
+                  <label for="filterStatus">Trạng thái môn học:</label>
+                  <select id="filterStatus">
+                    <option value="all-learned">Môn đã học (tất cả)</option>
+                    <option value="passed">Môn đã đậu</option>
+                    <option value="failed">Môn đã rớt</option>
+                    <option value="not-learned">Môn chưa học</option>
+                  </select>
+                </div>
+                <!-- NEW: Chuyên ngành -->
+                <div class="field-inline">
+                  <label for="filterMajor">Chuyên ngành:</label>
+                  <select id="filterMajor">
+                    <option value="all">Tất cả</option>
+                  </select>
+                </div>
+                <div class="field-inline">
+                  <label for="filterElective">Khối tự chọn:</label>
+                  <select id="filterElective">
+                    <option value="all">Tất cả</option>
+                    <option value="four-subjects">4 môn thay thế</option>
+                    <option value="thesis">Đồ án tốt nghiệp</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <table id="gradesTable">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Mã</th>
+                  <th>Tên môn</th>
+                  <th>TC</th>
+                  <th>TK(10)</th>
+                  <th>TK(CH)</th>
+                  <th>TK(4)</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div class="pagination-wrapper">
+              <div class="pagination-info">
+                <span id="paginationInfo"></span>
+              </div>
+              <div id="pagination" class="pagination"></div>
+            </div>
+          </div>
+
+          <!-- AI Chatbot Section -->
+          <div id="aiChatSection" class="wide" style="margin-top: 30px;">
+            <h3>🤖 Trợ lý AI học tập</h3>
+            <div class="ai-chat-container">
+              <div class="chat-header-inline"></div>
+              <div class="chat-messages-inline" id="chatMessagesInline">
+                <div class="message ai-message">
+                  <div class="message-content">
+                    👋 Xin chào ! Tôi là trợ lý AI học tập của HUTECH. Sau khi bạn upload bảng điểm,
+                    tôi sẽ giúp bạn: 📊 Phân tích kết quả học tập 🎯 Gợi ý môn học tiếp theo 📈 Chiến lược cải thiện GPA
+                    🎓 Lộ trình tốt nghiệp Hãy upload bảng điểm và bắt đầu **chat với tôi** nhé ! 😊
+                  </div>
+                </div>
+              </div>
+              <div class="chat-input-inline">
+                <input type="text" id="chatInputInline" placeholder="Nhập câu hỏi của bạn..." class="chat-input-field">
+                <button id="chatSendInline" class="chat-send-btn" title="Gửi">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2L11 13"></path>
+                    <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                  </svg>
+                  <span id="welcomeName" style="color: white; font-weight: 500;"></span>
+                  <button id="logoutBtn"
+                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; cursor: pointer;">Đăng
+                    xuất</button>
+              </div>
+            </div>
+            </header>
+
+
+            <footer class="footer">
+              <small>
+                <a href="https://hutech.edu.vn" target="_blank" style="color:#e53935;">Trường Đại học Công nghệ
+                  TP.HCM</a>
+                &nbsp;|&nbsp;
+                <a href="https://www.instagram.com/c.nhoa/" target="_blank" style="color:#e53935;">LH: @c.nhoa</a>
+              </small>
+            </footer>
+
+            <script src="js/app.js?v=2"></script>
+            <script src="js/chat.js"></script>
+            <script>
+              // Tự động chọn niên khóa và khoa/viện khi nhập MSSV
+              document.addEventListener('DOMContentLoaded', function () {
+                const mssvInput = document.getElementById('mssv');
+                const yearSelect = document.getElementById('yearSelect');
+                const deptSelect = document.getElementById('deptSelect');
+                const uploadForm = document.getElementById('uploadForm');
+
+                // Ánh xạ mã khoa sang tên khoa/viện
+                const deptMapping = {
+                  '8060': 'Công nghệ thông tin',
+                  '8006': 'Công nghệ thông tin',
+                  '8640': 'Khoa học dữ liệu',
+                  '8201': 'Khoa học dữ liệu',
+                  '8770': 'An toàn thông tin',
+                  '8077': 'An toàn thông tin',
+                  '8202': 'Trí tuê nhân tạo',
+                  '8064': 'Khoa học máy tính'
+                };
+
+                let lastSelectedYear = '';
+                let lastSelectedDept = '';
+
+                // Reset tracking variables khi form được reset
+                if (uploadForm) {
+                  uploadForm.addEventListener('reset', function () {
+                    lastSelectedYear = '';
+                    lastSelectedDept = '';
+                  });
+                }
+
+                if (mssvInput && yearSelect && deptSelect) {
+                  mssvInput.addEventListener('input', function (e) {
+                    const mssv = e.target.value.trim();
+
+                    // Reset về trạng thái ban đầu nếu MSSV trống
+                    if (mssv.length === 0) {
+                      mssvInput.setCustomValidity('');
+                      yearSelect.disabled = true;
+                      deptSelect.disabled = true;
+                      if (yearSelect.value !== '') {
+                        yearSelect.value = '';
+                        yearSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                      }
+                      if (deptSelect.value !== '') {
+                        deptSelect.value = '';
+                      }
+                      lastSelectedYear = '';
+                      lastSelectedDept = '';
+                      return;
+                    }
+
+                    // Reset tracking khi bắt đầu nhập MSSV mới (chưa đủ 6 số)
+                    if (mssv.length < 6) {
+                      lastSelectedYear = '';
+                      lastSelectedDept = '';
+                    }
+
+                    // Xử lý niên khóa khi có đủ 2 số đầu
+                    if (mssv.length >= 2) {
+                      const yearCode = mssv.substring(0, 2);
+                      const mappedYear = 2000 + parseInt(yearCode);
+                      const expectedLength = (yearCode === '24' || yearCode === '25') ? 11 : 10;
+
+                      if (mssv.length > expectedLength) {
+                        mssvInput.setCustomValidity(`MSSV khóa ${yearCode} phải có đúng ${expectedLength} chữ số`);
+                        mssvInput.reportValidity();
+                        yearSelect.disabled = true;
+                        deptSelect.disabled = true;
+                        return;
+                      } else if (mssv.length < expectedLength) {
+                        mssvInput.setCustomValidity(`MSSV khóa ${yearCode} phải có đúng ${expectedLength} chữ số (còn thiếu ${expectedLength - mssv.length} số)`);
+                        yearSelect.disabled = true;
+                        deptSelect.disabled = true;
+                        return;
+                      } else {
+                        mssvInput.setCustomValidity('');
+                      }
+
+                      if (mssv.length === expectedLength) {
+                        const options = Array.from(yearSelect.options);
+                        const matchingOption = options.find(opt => {
+                          const optValue = opt.value.toString();
+                          return optValue === mappedYear.toString() || optValue.includes(mappedYear.toString());
+                        });
+
+                        if (matchingOption) {
+                          if (yearSelect.value !== matchingOption.value) {
+                            lastSelectedYear = matchingOption.value;
+                            yearSelect.value = matchingOption.value;
+                            yearSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                          }
+                          yearSelect.disabled = true;
+                        } else {
+                          mssvInput.setCustomValidity(`Không tìm thấy niên khóa ${mappedYear} trong hệ thống`);
+                          yearSelect.disabled = true;
+                          deptSelect.disabled = true;
+                          return;
+                        }
+
+                        const deptCode = mssv.substring(2, 6);
+                        const deptName = deptMapping[deptCode];
+
+                        if (deptName) {
+                          lastSelectedDept = deptCode;
+                          setTimeout(() => {
+                            const deptOptions = Array.from(deptSelect.options);
+                            const matchingDept = deptOptions.find(opt => {
+                              const lowerText = opt.text.toLowerCase();
+                              const lowerValue = opt.value.toLowerCase();
+                              const lowerName = deptName.toLowerCase();
+                              return lowerText.includes(lowerName) || lowerValue.includes(lowerName);
+                            });
+
+                            if (matchingDept && deptSelect.value !== matchingDept.value) {
+                              deptSelect.value = matchingDept.value;
+                              deptSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                            } else if (!matchingDept) {
+                              mssvInput.setCustomValidity(`Mã khoa ${deptCode} không tồn tại trong hệ thống`);
+                            }
+                            deptSelect.disabled = true;
+                          }, 500);
+                        } else if (!deptName) {
+                          mssvInput.setCustomValidity(`Mã khoa ${deptCode} không hợp lệ`);
+                          deptSelect.disabled = true;
+                        }
+                      }
+                    } else {
+                      mssvInput.setCustomValidity('');
+                      yearSelect.disabled = true;
+                      deptSelect.disabled = true;
+                      if (yearSelect.value !== '') {
+                        yearSelect.value = '';
+                        yearSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                      }
+                      if (deptSelect.value !== '') {
+                        deptSelect.value = '';
+                      }
+                      lastSelectedYear = '';
+                      lastSelectedDept = '';
+                    }
+                  });
+                }
+              });
+
+              function toggleInfoSection(show) {
+                var infoSection = document.getElementById('infoSection');
+                if (infoSection) {
+                  if (show) infoSection.classList.remove('hidden');
+                  else infoSection.classList.add('hidden');
+                }
+              }
+
+              document.addEventListener('DOMContentLoaded', function () {
+                var resultsLayout = document.querySelector('.results-layout');
+                var uploadPanel = document.getElementById('uploadPanel');
+                var observer = new MutationObserver(function () {
+                  var isResultsVisible = !resultsLayout.classList.contains('hidden');
+                  toggleInfoSection(!isResultsVisible);
+                });
+                observer.observe(resultsLayout, { attributes: true, attributeFilter: ['class'] });
+
+                if (uploadPanel) {
+                  uploadPanel.addEventListener('transitionend', function () {
+                    var isUploadVisible = !uploadPanel.classList.contains('hidden');
+                    if (isUploadVisible) toggleInfoSection(true);
+                  });
+                }
+              });
+            </script>
+            <script>
+              // Check login status
+              fetch('/api/account/me')
+                .then(response => {
+                  if (response.ok) return response.json();
+                  throw new Error('Not logged in');
+                })
+                .then(user => {
+                  document.getElementById('authButtons').style.display = 'none';
+                  document.getElementById('userMenu').style.display = 'flex';
+                  let welcomeText = `Xin chào, ${user.fullName}`;
+                  //if (user.major) welcomeText += ` - ${user.major}`;
+                  document.getElementById('welcomeName').innerText = welcomeText;
+
+                  // Logout handler
+                  document.getElementById('logoutBtn').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    fetch('/api/account/logout', { method: 'POST' })
+                      .then(res => {
+                        if (res.ok) {
+                          window.location.reload();
+                        } else {
+                          alert('Đăng xuất thất bại');
+                        }
+                      })
+                      .catch(err => console.error(err));
+                  });
+                })
+                .catch(() => {
+                  document.getElementById('authButtons').style.display = 'flex';
+                  document.getElementById('userMenu').style.display = 'none';
+                });
+            </script>
+
+            <!-- Auto-Registration Modals -->
+            <div id="autoRegisterPromptModal" class="modal-overlay" style="display: none;">
+              <div class="modal-content">
+                <h2>💾 Lưu kết quả phân tích</h2>
+                <p>Bạn có muốn tạo tài khoản để lưu lại kết quả phân tích này không?</p>
+                <p class="modal-subtext">Chúng tôi sẽ tự động tạo tài khoản với MSSV của bạn.</p>
+                <div class="modal-actions">
+                  <button onclick="handleRegisterPrompt(true)" class="btn-primary">Có, tạo tài khoản</button>
+                  <button onclick="handleRegisterPrompt(false)" class="btn-secondary">Không, cảm ơn</button>
+                </div>
+              </div>
+            </div>
+
+            <div id="autoRegisterSuccessModal" class="modal-overlay" style="display: none;">
+              <div class="modal-content">
+                <h2>✅ Đăng ký thành công!</h2>
+                <p>Tài khoản của bạn đã được tạo. Vui lòng lưu lại thông tin đăng nhập:</p>
+                <div class="credentials-box">
+                  <div class="credential-item">
+                    <label>Tên đăng nhập (MSSV):</label>
+                    <strong id="generatedUsername"></strong>
+                  </div>
+                  <div class="credential-item">
+                    <label>Mật khẩu:</label>
+                    <strong id="generatedPassword"></strong>
+                    <button id="copyPasswordBtn" onclick="copyPassword()" class="btn-copy">📋 Sao chép</button>
+                  </div>
+                </div>
+                <p class="modal-warning">⚠️ Vui lòng sao chép mật khẩu ngay. Bạn có thể đổi mật khẩu sau khi đăng nhập.
+                </p>
+                <div class="modal-actions">
+                  <button onclick="closeSuccessModalAndLogin()" class="btn-primary">Đăng nhập ngay</button>
+                </div>
+              </div>
+            </div>
+
+            <style>
+              .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+              }
+
+              .modal-content {
+                background: white;
+                padding: 2.5rem;
+                border-radius: 16px;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                animation: modalSlideIn 0.3s ease-out;
+              }
+
+              @keyframes modalSlideIn {
+                from {
+                  opacity: 0;
+                  transform: translateY(-20px) scale(0.95);
+                }
+
+                to {
+                  opacity: 1;
+                  transform: translateY(0) scale(1);
+                }
+              }
+
+              .modal-content h2 {
+                margin-top: 0;
+                color: #e53935;
+                font-size: 1.8rem;
+                margin-bottom: 1rem;
+              }
+
+              .modal-content p {
+                font-size: 1.1rem;
+                line-height: 1.6;
+                color: #333;
+                margin-bottom: 1rem;
+              }
+
+              .modal-subtext {
+                font-size: 0.95rem;
+                color: #666;
+              }
+
+              .modal-actions {
+                display: flex;
+                gap: 1rem;
+                margin-top: 2rem;
+                justify-content: center;
+              }
+
+              .modal-actions button {
+                padding: 0.9rem 1.8rem;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: all 0.2s;
+              }
+
+              .btn-primary {
+                background: #e53935;
+                color: white;
+              }
+
+              .btn-primary:hover {
+                background: #d32f2f;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(229, 57, 53, 0.3);
+              }
+
+              .btn-secondary {
+                background: #f0f0f0;
+                color: #333;
+              }
+
+              .btn-secondary:hover {
+                background: #e0e0e0;
+              }
+
+              .credentials-box {
+                background: #f8f9fa;
+                border: 2px solid #e0e0e0;
+                border-radius: 12px;
+                padding: 1.5rem;
+                margin: 1.5rem 0;
+              }
+
+              .credential-item {
+                margin-bottom: 1rem;
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+              }
+
+              .credential-item:last-child {
+                margin-bottom: 0;
+              }
+
+              .credential-item label {
+                font-size: 0.9rem;
+                color: #666;
+                font-weight: 500;
+              }
+
+              .credential-item strong {
+                font-size: 1.3rem;
+                color: #e53935;
+                font-family: 'Courier New', monospace;
+                background: white;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                border: 1px solid #ddd;
+                display: inline-block;
+              }
+
+              .btn-copy {
+                background: #5B6DE3;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+                align-self: flex-start;
+                transition: all 0.2s;
+              }
+
+              .btn-copy:hover {
+                background: #4a5dc4;
+                transform: translateY(-2px);
+              }
+
+              .modal-warning {
+                background: #fff3cd;
+                border-left: 4px solid #ffc107;
+                padding: 1rem;
+                border-radius: 6px;
+                font-size: 0.95rem;
+                color: #856404;
+              }
+            </style>
+
+</body>
+
+</html>
+`

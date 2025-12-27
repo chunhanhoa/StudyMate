@@ -1,0 +1,2839 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ tay điện tử - HUTECH StudyMate</title>
+    <link rel="icon" type="image/x-icon" href="https://hutech.edu.vn/favicon.ico">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Quiz Styles */
+        .quiz-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+
+        .setup-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .setup-icon {
+            font-size: 3rem;
+            color: #0065bd;
+            margin-bottom: 1rem;
+        }
+
+        .setup-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e53935;
+            margin-bottom: 0.5rem;
+        }
+
+        .setup-desc {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(229, 57, 53, 0.3);
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-generate:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .quiz-interface {
+            display: none;
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .question-card.correct {
+            border-left-color: #4caf50;
+            background: #f1f8e9;
+        }
+
+        .question-card.incorrect {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-item:hover {
+            background: #f9f9f9;
+        }
+
+        .option-item input[type="radio"] {
+            margin-right: 10px;
+            accent-color: #e53935;
+            transform: scale(1.2);
+        }
+
+        .explanation-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fff3cd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #856404;
+            display: none;
+            border-left: 4px solid #ffeeba;
+        }
+
+        /* Overlays */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #e53935;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .result-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s;
+        }
+
+        .result-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: scaleIn 0.3s;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#e53935 0%, #eee 0%);
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #e53935;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            background: white;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .score-inner {
+            background: white;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+    <style>
+        :root {
+            --primary: #e53935;
+            --secondary: #ffb300;
+            --hutech-blue: #0065bd;
+            --hutech-blue-hover: #0052a3;
+            --bg: #f5f7fa;
+            --text: #333;
+            --white: #ffffff;
+            --header-height: 130px;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --max-width: 1400px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Two-Tier Header - HUTECH Style */
+        .main-header {
+            background: var(--white);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        /* Top White Bar */
+        .header-top {
+            background: var(--white);
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 0;
+        }
+
+        .header-top-content {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            height: 50px;
+        }
+
+        .header-logo img {
+            height: 45px;
+            width: auto;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .header-badges {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-badges img {
+            height: 35px;
+            width: auto;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .header-qs-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-qs-logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        /* Bottom Blue Navigation Bar */
+        .header-nav {
+            background: var(--hutech-blue);
+            padding: 0;
+        }
+
+        .header-nav-content {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 0;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            align-items: center;
+            flex: 1;
+        }
+
+        .nav-menu li {
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--white);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        .nav-link:hover {
+            background: var(--hutech-blue-hover);
+            border-bottom-color: var(--secondary);
+        }
+
+        .nav-link.active {
+            background: var(--hutech-blue-hover);
+            border-bottom-color: var(--secondary);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-left: auto;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn-logout-nav {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--white);
+            background: transparent;
+            color: var(--white);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .btn-logout-nav:hover {
+            background: var(--white);
+            color: var(--hutech-blue);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: var(--max-width);
+            width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+            display: block;
+            /* Override flex */
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+
+            .header-top-content,
+            .header-nav-content {
+                padding: 0 1rem;
+            }
+
+            .header-title {
+                font-size: 1.2rem;
+            }
+
+            .nav-link {
+                padding: 1rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .header-badges {
+                display: none;
+            }
+
+            .header-qs-logo {
+                display: none;
+            }
+
+            .header-title {
+                font-size: 1rem;
+            }
+
+            .nav-link {
+                padding: 1rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            .user-info {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --header-height: auto;
+            }
+
+            .header-top {
+                padding: 0.75rem 0;
+            }
+
+            .header-logo img {
+                height: 35px;
+            }
+
+            .header-title {
+                font-size: 0.9rem;
+            }
+
+            .header-nav-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0;
+            }
+
+            .nav-link {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            .nav-actions {
+                justify-content: center;
+                padding: 0.5rem 0;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .profile-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .profile-left {
+                position: static !important;
+            }
+        }
+
+        /* Existing Styles Reuse */
+        .page-title {
+            display: none;
+            /* Hide old page title as nav covers it */
+        }
+
+        .user-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+            background: #f5f5f5;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+
+        /* Keep form styles, cards, etc. */
+        .info-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            color: #e53935;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            background: #ffffff;
+            color: #334155;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.1);
+            background: #fff;
+        }
+
+        .form-control[readonly] {
+            background-color: #f8fafc;
+            border-color: #f1f5f9;
+            color: #64748b;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        /* Enhanced Buttons */
+        .btn-submit {
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        /* Button Variants */
+        #btnEditProfile {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        #btnSaveProfile {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        #btnCancelEdit {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        #btnUploadAvatar {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Avatar & Profile Grid */
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        .avatar-wrapper {
+            background: #fff;
+            padding: 5px;
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0.5rem;
+            width: 100%;
+            /* Fill the column */
+            display: block;
+        }
+
+        #userAvatar {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Info Boxes */
+        .info-box-status {
+            background-color: #dcedc8;
+            /* Light green */
+            color: #33691e;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #8bc34a;
+        }
+
+        .info-box-contact {
+            background-color: #e3f2fd;
+            /* Light blue */
+            color: #0d47a1;
+            padding: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            border-left: 4px solid #2196f3;
+        }
+
+        .info-box-contact ul {
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .info-box-contact li {
+            margin-bottom: 0.25rem;
+        }
+
+        .info-box-contact strong {
+            font-weight: 700;
+        }
+
+        /* Profile Layout */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .profile-left {
+            position: sticky;
+            top: calc(var(--header-height) + 2rem);
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+            /* Remove white background from container if shifting to boxes */
+            padding: 0;
+            box-shadow: none;
+            border: none;
+        }
+
+        /* Restore card style for just the avatar container if needed, or leave transparent to let boxes stand out */
+        .profile-left-content {
+            /* Removed extra padding wrapper */
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .profile-right {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            min-width: 0;
+        }
+
+        .info-details {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid #f1f5f9;
+        }
+
+        .section-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            margin: 2rem 0 1rem 0;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 0.5rem;
+        }
+
+        .section-header:first-child {
+            margin-top: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Document Section Styles */
+        .document-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .document-item {
+            display: flex;
+            gap: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .document-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .document-thumb {
+            width: 200px;
+            height: 120px;
+            flex-shrink: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        .document-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .document-thumb:hover img {
+            transform: scale(1.05);
+        }
+
+        .document-content {
+            flex: 1;
+        }
+
+        .document-title {
+            color: #0056b3;
+            font-weight: 700;
+            font-size: 1rem;
+            margin: 0 0 0.5rem 0;
+            line-height: 1.4;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        .document-title:hover {
+            text-decoration: underline;
+            color: #003d80;
+        }
+
+        .document-desc {
+            color: #555;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 0;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-align: justify;
+        }
+
+        @media (max-width: 600px) {
+            .document-item {
+                flex-direction: column;
+            }
+
+            .document-thumb {
+                width: 100%;
+                height: 180px;
+            }
+        }
+
+        /* Article Detail View */
+        .article-detail {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .article-detail-title {
+            text-align: center;
+            color: #333;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            line-height: 1.4;
+        }
+
+        .article-meta {
+            text-align: left;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        }
+
+        .article-content {
+            text-align: justify;
+            line-height: 1.6;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1rem;
+        }
+    </style>
+    <style>
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 1rem;
+            animation: slideIn 0.3s ease-out forwards;
+            min-width: 300px;
+            border-left: 5px solid #2e7d32;
+        }
+
+        .toast.error {
+            border-left-color: #d32f2f;
+        }
+
+        .toast.info {
+            border-left-color: #0288d1;
+        }
+
+        .toast-icon {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        .toast-message {
+            color: #333;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Community Styles */
+        .community-container {
+            max-width: 800px;
+            margin: 0 auto;
+            /* Centered in tab */
+            width: 100%;
+        }
+
+        .create-post-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            border: 1px solid #eee;
+        }
+
+        .create-post-section {
+            padding: 1rem 0.5rem;
+            /* Add breathing room */
+        }
+
+        .create-post-header {
+            display: flex;
+            gap: 1.5rem;
+            /* Increased gap */
+            margin-bottom: 1.5rem;
+            /* Increased separation */
+            align-items: flex-start;
+            /* Align top */
+        }
+
+        .user-avatar {
+            width: 48px !important;
+            /* Slightly larger avatar */
+            height: 48px !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
+            background: #E5E7EB;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #6B7280;
+            overflow: hidden !important;
+            flex-shrink: 0 !important;
+            position: relative !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            /* Subtle shadow */
+        }
+
+        .user-avatar img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 50% !important;
+            display: block !important;
+        }
+
+        .post-input {
+            flex: 1;
+            border: 1px solid transparent;
+            /* No border initially */
+            background-color: #f0f2f5;
+            /* Light grey bg like FB */
+            border-radius: 24px;
+            /* More rounded */
+            padding: 1rem 1.5rem;
+            /* Spacious padding */
+            font-family: inherit;
+            resize: none;
+            transition: all 0.2s ease;
+            outline: none;
+            font-size: 1rem;
+            min-height: 80px;
+            /* Taller default */
+        }
+
+        .post-input:focus {
+            background-color: #fff;
+            border-color: #e4e6eb;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 1rem;
+            /* Increased top padding */
+            border-top: 1px solid #f0f2f5;
+        }
+
+        .btn-post {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-post:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Feed */
+        .feed-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.3s ease-in;
+            border: 1px solid #eee;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .feed-user-info {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .feed-username {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .feed-time {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+
+        .feed-content {
+            color: #374151;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .feed-actions {
+            display: flex;
+            gap: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #F3F4F6;
+            color: #6B7280;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            color: inherit;
+            font-family: inherit;
+            font-size: 0.9rem;
+            position: relative;
+            /* For reaction popup positioning */
+        }
+
+        .action-btn:hover {
+            color: var(--primary);
+        }
+
+        /* Reaction Colors */
+        .color-like {
+            color: #2078f4 !important;
+        }
+
+        .color-love {
+            color: #f33e58 !important;
+        }
+
+        .color-care {
+            color: #f7b125 !important;
+        }
+
+        .color-haha {
+            color: #f7b125 !important;
+        }
+
+        .color-wow {
+            color: #f7b125 !important;
+        }
+
+        .color-sad {
+            color: #f7b125 !important;
+        }
+
+        .color-angry {
+            color: #e9710f !important;
+        }
+
+        .action-btn.liked {
+            color: var(--primary);
+            /* Default liked color if no specific reaction */
+        }
+
+        /* Bounce Animation */
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.8);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .animate-bounce {
+            animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Facebook-style Reactions */
+        .reaction-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .reaction-box {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: white;
+            border-radius: 50px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            padding: 5px 10px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px) scale(0.8);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            border: 1px solid #efefef;
+            margin-bottom: 10px;
+        }
+
+        .reaction-wrapper:hover .reaction-box {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .reaction-icon {
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+
+        .reaction-icon:hover {
+            transform: scale(1.3) translateY(-5px);
+        }
+
+        /* Emoji Picker for Comments */
+        .emoji-picker-container {
+            position: absolute;
+            bottom: 110%;
+            /* Move up slightly */
+            right: -10px;
+            /* Align slightly outside */
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            width: 250px;
+            /* Increased width */
+            z-index: 500;
+            margin-bottom: 8px;
+        }
+
+        .emoji-item {
+            font-size: 1.4rem;
+            cursor: pointer;
+            text-align: center;
+            padding: 6px;
+            border-radius: 6px;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-item:hover {
+            background: #f0f2f5;
+            transform: scale(1.1);
+        }
+
+        /* Modern Comment Styles */
+        .comments-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f0f2f5;
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .comments-section.active {
+            display: block;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        /* Avatar styling */
+        .comment-item .user-avatar {
+            width: 32px !important;
+            height: 32px !important;
+            min-width: 32px !important;
+            min-height: 32px !important;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .comment-item .user-avatar:hover {
+            opacity: 0.9;
+        }
+
+        /* Comment Bubble */
+        .comment-content-container {
+            flex: 1;
+            max-width: calc(100% - 40px);
+        }
+
+        .comment-bubble {
+            background-color: #f0f2f5;
+            border-radius: 18px;
+            padding: 8px 12px;
+            display: inline-block;
+            position: relative;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #050505;
+            margin-bottom: 2px;
+            cursor: pointer;
+        }
+
+        .comment-author:hover {
+            text-decoration: underline;
+        }
+
+        .comment-text {
+            font-size: 0.9375rem;
+            color: #050505;
+            line-height: 1.3333;
+            word-wrap: break-word;
+        }
+
+        .author-badge {
+            background-color: #e4e6eb;
+            color: #65676b;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+            vertical-align: middle;
+            font-weight: 500;
+        }
+
+        /* Action Links (Like - Reply - Time) */
+        .comment-actions-row {
+            display: flex;
+            gap: 12px;
+            margin-left: 12px;
+            margin-top: 2px;
+            margin-bottom: 4px;
+        }
+
+        .comment-action-item {
+            background: none;
+            border: none;
+            padding: 0;
+            color: #65676b;
+            font-weight: 700;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .comment-action-item:hover {
+            text-decoration: underline;
+        }
+
+        .comment-time {
+            color: #65676b;
+            font-size: 0.75rem;
+        }
+
+        /* Nested Comments */
+        .replies-container {
+            margin-top: 5px;
+        }
+
+        /* Nesting Levels - handled by margin-left in JS or classes */
+        /* We'll use specific classes for levels if needed, or just nested structure */
+
+        /* Input Area */
+        .comment-input-area {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            align-items: flex-start;
+        }
+
+        .comment-input-wrapper {
+            flex: 1;
+            background-color: #f0f2f5;
+            border-radius: 20px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .comment-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 0.9375rem;
+            resize: none;
+            font-family: inherit;
+        }
+
+        .emoji-trigger {
+            color: #65676b;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-left: 8px;
+            transition: color 0.2s;
+        }
+
+        .emoji-trigger:hover {
+            color: #f7b928;
+            transform: scale(1.1);
+        }
+
+        /* Reply Input */
+        .reply-input-area {
+            margin-top: 5px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .mention-tag {
+            color: #0065bd;
+            /* Hutech Blue */
+            font-weight: 600;
+            background: rgba(0, 101, 189, 0.1);
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+
+        /* Enhanced Section Headers */
+        .section-header-large {
+            font-size: 1.8rem;
+            /* Larger font */
+            font-weight: 800;
+            color: #004d99;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0;
+            letter-spacing: 1px;
+            padding-bottom: 15px;
+            /* More padding */
+            border-bottom: 4px solid #f7b928;
+            /* Thicker underline */
+            display: inline-block;
+            position: relative;
+        }
+
+        /* Add decorative element to header */
+        .section-header-large::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            /* Offset from border */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: #f7b928;
+            border-radius: 50%;
+        }
+
+        .info-header {
+            text-align: center;
+            /* Center the header */
+            margin-bottom: 2rem;
+            /* Add clear separation from form */
+            border-bottom: 1px solid #eee;
+            /* Subtle separator for the whole header area */
+            padding-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Two-Tier Header - HUTECH Style -->
+    <header class="main-header">
+        <!-- Top White Bar -->
+        <div class="header-top">
+            <div class="header-top-content">
+                <!-- Logo -->
+                <div class="header-logo">
+                    <img src="https://www.hutech.edu.vn/images/logo/HUTECH_qs_starts.png" alt="HUTECH Logo">
+                </div>
+
+                <!-- Center: Badges + Title -->
+                <div class="header-center">
+                    <h1 class="header-title">Sổ tay điện tử</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Blue Navigation Bar -->
+        <div class="header-nav">
+            <div class="header-nav-content">
+                <ul class="nav-menu">
+                    <li><a href="#overview" class="nav-link active" data-tab="overview"><i class="fas fa-home"></i> Tổng
+                            quan</a></li>
+                    <li><a href="#sv5t" class="nav-link" data-tab="sv5t">Hồ sơ SV5T</a></li>
+                    <li><a href="#activities" class="nav-link" data-tab="activities">Hoạt động</a></li>
+                    <li><a href="#community" class="nav-link" data-tab="community">Cộng đồng</a></li>
+                    <li>
+                        <a href="#smart-study" class="nav-link" data-tab="smart-study"> <span
+                                style="white-space: normal;">Ôn thi trắc nghiệm</span>
+                        </a>
+                    </li>
+                    <li><a href="index.html" class="nav-link">Trang chủ</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    <div class="user-info">
+                        <span id="headerUserName">Sinh viên</span>
+                    </div>
+                    <button id="logoutBtn" class="btn-logout-nav">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Removed inner header, now just content -->
+        <div class="content-area" style="padding: 0;">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <!-- New 2-Column Profile Layout -->
+                <div class="profile-grid">
+                    <!-- Left Column: Avatar & Info -->
+                    <div class="profile-left">
+                        <div class="profile-left-content">
+                            <div class="avatar-wrapper">
+                                <img id="userAvatar" src="https://via.placeholder.com/150?text=Avatar" alt="Avatar">
+                            </div>
+                            <div style="text-align: center;">
+                                <button id="btnUploadAvatar" class="btn-submit"
+                                    style="display: none; padding: 0.5rem 1rem; font-size: 0.8rem; width: 100%;">
+                                    Đổi ảnh
+                                </button>
+                                <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                            </div>
+                        </div>
+                        <div class="info-box-contact">
+                            <div>Yêu cầu chỉnh sửa các thông tin khác xin liên hệ:</div>
+                            <ul>
+                                <li><strong>PHÒNG ĐÀO TẠO - KHẢO THÍ</strong></li>
+                                <li>Trụ sở: <strong>475A (số cũ:144/24)
+                                <li> Điện Biên Phủ, P.25, Q.Bình Thạnh,
+                                    TP.HCM</strong></li>
+                                </li>
+                                <li>ĐT: <strong>(028) 3 5120782</strong></li>
+                                <li>Fax: <strong>(028) 3 5120784</strong></li>
+                                <li>Email: <strong>daotao@hutech.edu.vn</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Unified Form -->
+                    <div class="profile-right">
+                        <div class="info-details" style="width: 100%;">
+                            <div class="info-header" style="position: relative;">
+                                <h3 class="section-header-large">THÔNG TIN SINH VIÊN</h3>
+                                <div class="header-actions" style="position: absolute; right: 0; top: 0;">
+                                    <button id="btnEditProfile" class="btn-submit"
+                                        style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                        Chỉnh sửa
+                                    </button>
+                                    <button id="btnCancelEdit" class="btn-submit"
+                                        style="display: none; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                        Hủy
+                                    </button>
+                                    <button id="btnSaveProfile" class="btn-submit"
+                                        style="display: none; padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                        Lưu
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="userInfoContainer">
+                                <!-- Dynamic Unified Form inserted here -->
+                                <div class="loading">Đang tải thông tin...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SV5T Tab -->
+            <div id="sv5t" class="tab-content">
+                <div class="info-card">
+                    <div class="info-header">
+                        <h3 class="section-header-large">HỒ SƠ SINH VIÊN 5 TỐT</h3>
+                    </div>
+                    <form id="sv5tForm">
+                        <div class="form-group">
+                            <label class="form-label">Họ và tên</label>
+                            <input type="text" id="sv5tName" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">MSSV</label>
+                            <input type="text" id="sv5tStudentId" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Chuyên ngành</label>
+                            <input type="text" id="sv5tMajor" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Năm học đăng ký</label>
+                            <select id="sv5tYear" class="form-control" required>
+                                <option value="">-- Chọn năm học --</option>
+                                <option value="2025-2026">2025-2026</option>
+                                <option value="2026-2027">2026-2027</option>
+                            </select>
+                        </div>
+
+                        <!-- New Level Section -->
+                        <div class="form-group">
+                            <label class="form-label">Đăng ký phấn đấu CẤP <span style="color: red;">*</span></label>
+                            <div
+                                style="display: flex; justify-content: space-between; flex-wrap: wrap; padding: 0.5rem 0;">
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; color: #333;">
+                                    <input type="radio" name="sv5tLevel" value="Khoa/Viện" required> Khoa/Viện
+                                </label>
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; color: #333;">
+                                    <input type="radio" name="sv5tLevel" value="Trường"> Trường
+                                </label>
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; color: #333;">
+                                    <input type="radio" name="sv5tLevel" value="Thành"> Thành
+                                </label>
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 500; color: #333;">
+                                    <input type="radio" name="sv5tLevel" value="Trung ương"> Trung ương
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Những kiến nghị khó khăn gặp phải</label>
+                            <textarea id="sv5tReason" class="form-control"
+                                placeholder="Nhập kiến nghị (nếu có)..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit">Đăng ký</button>
+                    </form>
+                </div>
+
+                <div class="history-section" style="margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem;">
+                    <h4 style="color: var(--primary); margin-bottom: 1rem;">Lịch sử đăng ký</h4>
+                    <div id="sv5tHistoryContainer">
+                        <div class="loading">Đang tải lịch sử...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="activities" class="tab-content">
+                <div class="info-card">
+                    <div class="info-header"
+                        style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="section-header-large">HOẠT ĐỘNG & SỰ KIỆN</h3>
+                        <button id="btnAddActivity" class="btn-submit" style="width: auto;">+ Thêm mới</button>
+                    </div>
+
+                    <!-- Form (Hidden by default) -->
+                    <div id="activityFormContainer"
+                        style="display: none; margin-bottom: 2rem; background: #f9f9f9; padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="margin-top: 0;">Cập nhật hoạt động</h4>
+                        <form id="activityForm">
+                            <div class="form-group">
+                                <label class="form-label">Tên hoạt động & Sự kiện</label>
+                                <input type="text" name="activityName" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ngày tham gia</label>
+                                <input type="date" name="participationDate" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Họ tên sinh viên</label>
+                                <input type="text" id="actStudentName" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">MSSV</label>
+                                <input type="text" id="actStudentId" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Hình ảnh minh chứng</label>
+                                <input type="file" name="image" class="form-control" accept="image/*" required>
+                            </div>
+                            <div style="display: flex; gap: 1rem;">
+                                <button type="submit" class="btn-submit">Lưu hoạt động</button>
+                                <button type="button" id="btnCancelActivity" class="btn-submit"
+                                    style="background: #757575;">Hủy</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- List Container -->
+                    <div id="activitiesList">
+                        <div class="loading">Đang tải dữ liệu...</div>
+                    </div>
+                </div>
+
+                <!-- New Document Section -->
+                <div class="info-card" style="margin-top: 2rem;">
+                    <!-- Document List View -->
+                    <div id="documentListContainer">
+                        <h3 class="section-header"
+                            style="margin-top: 0; display: flex; align-items: center; gap: 0.5rem;">
+                            🔔 TÀI LIỆU, THÔNG TIN HOẠT ĐỘNG "SINH VIÊN 5 TỐT"
+                            <span
+                                style="font-size: 0.8rem; font-weight: 400; color: #666; margin-left: auto; text-transform: italic;">
+                                Sinh viên theo dõi các hoạt động sinh viên 5 tốt
+                            </span>
+                        </h3>
+
+                        <div class="document-list" id="documentList">
+                            <!-- Dynamic Items will be inserted here by JS -->
+                            <div class="loading">Đang tải tài liệu...</div>
+                        </div>
+                    </div>
+
+                    <!-- Article Detail View -->
+                    <div id="documentDetailContainer" class="article-detail">
+                        <div class="article-meta" style="border-bottom: none; margin-bottom: 1rem;">
+                            <span id="articleDate"></span>
+                        </div>
+                        <h2 class="article-detail-title" id="articleTitle"></h2>
+                        <div style="border-bottom: 1px solid #eee; margin-bottom: 1.5rem;"></div>
+
+                        <div class="article-content" id="articleContent">
+                            <!-- Content goes here -->
+                        </div>
+
+                        <div style="text-align: right; margin-top: 2rem;">
+                            <button id="btnBackToDocs" class="btn-submit"
+                                style="background: #fff; color: #333; border: 1px solid #ccc;">
+                                ⬅ Quay lại
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community Tab -->
+            <div id="community" class="tab-content">
+                <div class="community-container">
+                    <!-- Main Community Header & Create Post Combined -->
+                    <div class="info-card" style="margin-bottom: 2rem;">
+                        <div class="info-header" style="margin-bottom: 1.5rem; text-align: center;">
+                            <h3 class="section-header-large">CỘNG ĐỒNG SINH VIÊN</h3>
+                        </div>
+
+                        <!-- Create Post Content -->
+                        <div class="create-post-section">
+                            <h4 style="margin-top: 0; margin-bottom: 1rem; color: #374151; font-weight: 600;">Tạo bài
+                                viết</h4>
+                            <div class="create-post-header">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <textarea id="postContent" class="post-input" rows="3"
+                                    placeholder="Bạn đang nghĩ gì? Chia sẻ với mọi người nhé..."></textarea>
+                            </div>
+
+                            <!-- File Preview Container -->
+                            <div id="filePreview" style="margin-bottom: 1rem; display: none;"></div>
+
+                            <div class="post-actions"
+                                style="margin-top: 1rem; border-top: 1px solid #f0f2f5; padding-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                                <!-- Upload Button -->
+                                <div>
+                                    <input type="file" id="postFileInput" hidden accept="image/*, .pdf, .doc, .docx"
+                                        onchange="handleFileSelect(this)">
+                                    <button type="button" class="btn-icon"
+                                        onclick="document.getElementById('postFileInput').click()"
+                                        style="background: none; border: none; cursor: pointer; color: #45bd62; font-size: 1.2rem; padding: 0.5rem; border-radius: 50%; transition: background 0.2s;"
+                                        onmouseover="this.style.background='#f0f2f5'"
+                                        onmouseout="this.style.background='none'" title="Ảnh/Video">
+                                        <i class="fas fa-images"></i>
+                                    </button>
+                                </div>
+                                <button id="btnSubmitPost" class="btn-post" onclick="submitPost()">Đăng bài</button>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Post Feed -->
+                    <div id="feedContainer">
+                        <!-- Loading state -->
+                        <div style="text-align: center; padding: 2rem; color: #6B7280;">
+                            <i class="fas fa-spinner fa-spin fa-2x"></i>
+                            <p style="margin-top: 1rem;">Đang tải bài viết...</p>
+                        </div>
+                    </div>
+
+                    <!-- Load More -->
+                    <div id="loadMoreContainer" class="load-more-container"
+                        style="display: none; text-align: center; margin-top: 1rem;">
+                        <button id="btnLoadMore" class="btn-post"
+                            style="background: white; color: #333; border: 1px solid #ccc;" onclick="loadMore()">Xem
+                            thêm bài viết</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="certificates" class="tab-content">
+                <div class="info-card">
+                    <h3>Giấy chứng nhận</h3>
+                    <p>Chức năng đang được phát triển.</p>
+                </div>
+            </div>
+
+            <div id="score-analysis" class="tab-content">
+                <div class="info-card">
+                    <h3>Phân tích điểm</h3>
+                    <p>Chức năng đang được phát triển.</p>
+                </div>
+            </div>
+
+            <!-- Smart Study Tab (Integrated) -->
+            <div id="smart-study" class="tab-content">
+                <div class="quiz-container">
+                    <!-- Setup View (Redesigned) -->
+                    <style>
+                        /* Enhanced Quiz Styles placed locally for handbook override */
+                        .setup-card-enhanced {
+                            background: white;
+                            border-radius: 20px;
+                            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                            padding: 3rem 2rem;
+                            text-align: center;
+                            max-width: 700px;
+                            margin: 2rem auto;
+                            border: 1px solid rgba(0,0,0,0.02);
+                            position: relative;
+                            overflow: hidden;
+                        }
+
+                        .setup-card-enhanced::before {
+                            content: '';
+                            position: absolute;
+                            top: 0; left: 0; right: 0; height: 6px;
+                            background: linear-gradient(90deg, #0065bd, #2980b9);
+                        }
+
+                        /* Icon removed as requested */
+
+                        .setup-title-enhanced {
+                            font-size: 1.8rem;
+                            font-weight: 800;
+                            color: #0065bd;
+                            margin-bottom: 0.5rem;
+                            letter-spacing: -0.5px;
+                            text-transform: uppercase;
+                        }
+                        
+                        .setup-desc-enhanced {
+                            color: #7f8c8d;
+                            margin-bottom: 2.5rem;
+                            font-size: 1.05rem;
+                        }
+
+                        .input-group-enhanced {
+                            margin-bottom: 2rem;
+                            text-align: left;
+                        }
+
+                        .label-enhanced {
+                            display: block;
+                            font-weight: 600;
+                            color: #34495e;
+                            margin-bottom: 0.7rem;
+                            font-size: 0.95rem;
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                        }
+
+                        .control-enhanced {
+                            width: 100%;
+                            padding: 1rem 1.2rem;
+                            border: 2px solid #edf2f7;
+                            border-radius: 12px;
+                            font-size: 1rem;
+                            background: #f8fafc;
+                            transition: all 0.3s;
+                            box-sizing: border-box;
+                            appearance: none;
+                        }
+
+                        .control-enhanced:focus {
+                            outline: none;
+                            border-color: #0065bd;
+                            background: white;
+                            box-shadow: 0 0 0 4px rgba(0, 101, 189, 0.1);
+                        }
+
+                        .row-enhanced {
+                            display: flex;
+                            gap: 1.5rem;
+                        }
+                        
+                        .col-enhanced {
+                            flex: 1;
+                        }
+
+                        .btn-generate-enhanced {
+                            background: linear-gradient(135deg, #0065bd 0%, #004d91 100%);
+                            color: white;
+                            border: none;
+                            padding: 1.2rem;
+                            border-radius: 12px;
+                            width: 100%;
+                            font-size: 1.1rem;
+                            font-weight: 700;
+                            cursor: pointer;
+                            transition: all 0.3s;
+                            box-shadow: 0 4px 15px rgba(0, 101, 189, 0.3);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.8rem;
+                        }
+
+                        .btn-generate-enhanced:hover {
+                            transform: translateY(-3px);
+                            box-shadow: 0 8px 25px rgba(0, 101, 189, 0.4);
+                        }
+
+                        .btn-generate-enhanced:active {
+                            transform: translateY(1px);
+                        }
+                    </style>
+
+                    <div id="setupView" class="setup-card-enhanced">
+                        <!-- Icon removed -->
+                        <h1 class="setup-title-enhanced">Ôn thi trắc nghiệm thông minh</h1>
+                        <p class="setup-desc-enhanced">Nhập chủ đề bạn muốn ôn tập, AI sẽ tạo đề thi thử ngay lập tức.</p>
+
+                        <div class="input-group-enhanced">
+                            <label class="label-enhanced"><i class="fas fa-book-open" style="margin-right: 8px; color: #0065bd;"></i>Chủ đề / Môn học</label>
+                            <input type="text" id="topicInput" class="control-enhanced"
+                                placeholder="Nhập chủ đề... (VD: Kinh tế vĩ mô, Lịch sử Đảng...)">
+                        </div>
+
+                        <div class="row-enhanced">
+                            <div class="col-enhanced">
+                                <div class="input-group-enhanced">
+                                    <label class="label-enhanced"><i class="fas fa-layer-group" style="margin-right: 8px; color: #0065bd;"></i>Độ khó</label>
+                                    <div style="position: relative;">
+                                        <select id="difficultyInput" class="control-enhanced">
+                                            <option value="Easy">Cơ bản</option>
+                                            <option value="Medium" selected>Trung bình</option>
+                                            <option value="Hard">Nâng cao</option>
+                                        </select>
+                                        <i class="fas fa-chevron-down" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #aaa; pointer-events: none;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-enhanced">
+                                <div class="input-group-enhanced">
+                                    <label class="label-enhanced"><i class="fas fa-list-ol" style="margin-right: 8px; color: #0065bd;"></i>Số câu hỏi</label>
+                                    <div style="position: relative;">
+                                        <select id="numQuestionsInput" class="control-enhanced">
+                                            <option value="5">5 câu</option>
+                                            <option value="10" selected>10 câu</option>
+                                            <option value="15">15 câu</option>
+                                        </select>
+                                        <i class="fas fa-chevron-down" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #aaa; pointer-events: none;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="generateQuiz()" class="btn-generate-enhanced" id="btnGen">
+                            <i class="fas fa-magic"></i> TẠO ĐỀ THI NGAY
+                        </button>
+                    </div>
+
+                    <!-- Quiz Interface (Hidden) -->
+                    <div id="quizView" class="quiz-interface">
+                        <div class="quiz-header">
+                            <div>
+                                <h2 style="margin: 0; font-size: 1.2rem; color: #333;" id="quizTitle">Kinh tế vĩ mô</h2>
+                                <span style="color: #666; font-size: 0.9rem;" id="quizMeta">10 câu hỏi</span>
+                            </div>
+                        </div>
+
+                        <div id="questionsContainer">
+                            <!-- Questions injected here -->
+                        </div>
+
+                        <div style="text-align: center; margin-top: 2rem;">
+                            <button onclick="submitQuiz()" class="btn-generate"
+                                style="background: #4caf50; width: auto; padding: 0.8rem 3rem;">
+                                Nộp Bài
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay (Global for this page) -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <h3 style="color: #0065bd;">Đang tạo đề thi...</h3>
+        <p style="color: #666;">AI đang suy nghĩ câu hỏi cho bạn, đợi xíu nhé!</p>
+    </div>
+
+    <!-- Result Modal (Global for this page) -->
+    <div id="resultOverlay" class="result-overlay">
+        <div class="result-card">
+            <h2 style="color: #333; margin-top: 0;">Kết Quả</h2>
+            <div class="score-circle" id="scoreCircle" style="background: conic-gradient(#4caf50 0%, #eee 0%);">
+                <div class="score-inner">
+                    <span id="scoreText">8/10</span>
+                </div>
+            </div>
+            <p id="scoreMessage" style="font-weight: 600; font-size: 1.1rem; color: #4caf50;">Xuất sắc!</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                <button onclick="closeResult()"
+                    style="background: #f5f5f5; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;">Xem
+                    chi tiết</button>
+                <button onclick="retryQuiz()"
+                    style="background: #0065bd; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;">Làm
+                    lại</button>
+                <button onclick="window.resetBackToSetup()"
+                    style="background: #f5f5f5; border: 1px solid #ddd; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;">Chọn
+                    chủ đề khác</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Restrict future dates for participationDate
+            const dateInput = document.querySelector('input[name="participationDate"]');
+            if (dateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.setAttribute('max', today);
+            }
+
+            const userInfoContainer = document.getElementById('userInfoContainer');
+            const headerUserName = document.getElementById('headerUserName');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const pageTitle = document.getElementById('pageTitle');
+            const menuLinks = document.querySelectorAll('.nav-link[data-tab]');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // Tab Switching Logic
+            menuLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+
+                    // Update Active State
+                    menuLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+
+                    const tabId = link.getAttribute('data-tab');
+                    tabContents.forEach(tab => {
+                        if (tab.id === tabId) {
+                            tab.classList.add('active');
+                            // If switching to activities, ensure list view is shown
+                            if (tabId === 'activities') {
+                                document.getElementById('documentListContainer').style.display = 'block';
+                                document.getElementById('documentDetailContainer').style.display = 'none';
+                            }
+                            // If switching to community, load posts
+                            if (tabId === 'community') {
+                                // Check if loaded or just load every time? Load if container empty or has loading
+                                // Simple check: always load for now or rely on community.js logic
+                                if (typeof loadPosts === 'function') loadPosts();
+                            }
+                        } else {
+                            tab.classList.remove('active');
+                        }
+                    });
+
+                    // Mobile sidebar auto-close
+                    if (window.innerWidth <= 768) {
+                        // Optional: close sidebar if implemented
+                    }
+                });
+            });
+
+            // Document Data
+            let articles = [];
+
+            const fetchArticles = async () => {
+                try {
+                    const response = await fetch('/api/ActivityArticle');
+                    if (response.ok) {
+                        const data = await response.json();
+                        articles = data.map(item => ({
+                            id: item.id,
+                            title: item.title,
+                            date: item.publishDate,
+                            thumb: item.thumbnailUrl,
+                            desc: item.description,
+                            content: item.content
+                        }));
+                        renderDocuments();
+                    } else {
+                        console.error('Failed to fetch articles');
+                    }
+                } catch (error) {
+                    console.error('Error fetching articles:', error);
+                }
+            };
+
+            // Initial fetch
+            fetchArticles();
+
+            const renderDocuments = () => {
+                const list = document.getElementById('documentList');
+                if (!list) return;
+
+                list.innerHTML = articles.map(item => `
+                    <div class="document-item">
+                        <div class="document-thumb">
+                            <img src="${item.thumb}" alt="thumb">
+                        </div>
+                        <div class="document-content">
+                            <a href="#" class="document-title" onclick="viewArticle('${item.id}'); return false;">${item.title}</a>
+                            <p class="document-desc">${item.desc}</p>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            // Global functions for inline onclick access
+            window.viewArticle = (id) => {
+                const article = articles.find(a => a.id === id);
+                if (!article) return;
+
+                document.getElementById('articleTitle').textContent = article.title;
+                document.getElementById('articleDate').textContent = `Ngày tạo: ${article.date}`;
+                document.getElementById('articleContent').innerHTML = article.content;
+
+                document.getElementById('documentListContainer').style.display = 'none';
+                document.getElementById('documentDetailContainer').style.display = 'block';
+
+                // Scroll to top of detail view
+                document.getElementById('documentDetailContainer').scrollIntoView({ behavior: 'smooth' });
+            };
+
+            window.closeArticle = () => {
+                document.getElementById('documentDetailContainer').style.display = 'none';
+                document.getElementById('documentListContainer').style.display = 'block';
+            };
+
+            document.getElementById('btnBackToDocs').addEventListener('click', window.closeArticle);
+
+            // Fetch User Info
+            let currentUserData = {};
+            let isEditMode = false;
+            let pendingAvatarBase64 = null;
+
+            // Helper to update UI with user data
+            function updateUIWithUserData(user) {
+                window.currentUserData = user; // Make global
+
+                // Update header
+                if (headerUserName) headerUserName.textContent = user.fullName;
+
+                // Update profile avatar
+                const avatarImg = document.getElementById('userAvatar');
+                if (avatarImg) {
+                    avatarImg.src = user.avatarUrl || 'https://via.placeholder.com/150?text=Avatar';
+                }
+
+                // Update Create Post Avatar
+                const createPostAvatar = document.querySelector('.create-post-header .user-avatar');
+                if (createPostAvatar) {
+                    if (user.avatarUrl) {
+                        createPostAvatar.innerHTML = `<img src="${user.avatarUrl}" alt="Avatar">`;
+                    } else {
+                        createPostAvatar.innerHTML = `<i class="fas fa-user"></i>`;
+                    }
+                }
+
+                // Update Comment Input Avatars
+                document.querySelectorAll('.comment-input-area .user-avatar').forEach(el => {
+                    if (user.avatarUrl) {
+                        el.innerHTML = `<img src="${user.avatarUrl}" alt="Avatar">`;
+                    } else {
+                        el.innerHTML = `<i class="fas fa-user"></i>`;
+                    }
+                });
+            }
+
+            // Auto-refresh when tab becomes visible
+            document.addEventListener('visibilitychange', async () => {
+                if (document.visibilityState === 'visible') {
+                    try {
+                        const res = await fetch('/api/account/me');
+                        if (res.ok) {
+                            const user = await res.json();
+                            // If user changed (e.g. logged in as someone else in another tab)
+                            if (window.currentUserData?.studentId !== user.studentId) {
+                                currentUserData = user;
+                                updateUIWithUserData(user);
+                                // Reload posts to reflect permissions/views if needed
+                                if (typeof loadPosts === 'function') loadPosts();
+                            }
+                        }
+                    } catch (e) { }
+                }
+            });
+
+            try {
+                const response = await fetch('/api/account/me');
+                if (response.ok) {
+                    const user = await response.json();
+                    console.log('User data loaded:', user);
+                    console.log('Email loaded:', user.email);
+                    currentUserData = user;
+                    updateUIWithUserData(user);
+
+                    // Department mapping from MSSV (copied from index.html)
+                    const deptMapping = {
+                        '8060': 'Công nghệ thông tin',
+                        '8006': 'Công nghệ thông tin',
+                        '8640': 'Khoa học dữ liệu',
+                        '8046': 'Khoa học dữ liệu',
+                        '8770': 'An toàn thông tin',
+                        '8077': 'An toàn thông tin',
+                        '8202': 'Trí tuệ nhân tạo',
+                        '8064': 'Khoa học máy tính'
+                    };
+
+                    // Auto-fill faculty from MSSV if missing
+                    if (!user.faculty && user.studentId && user.studentId.length >= 6) {
+                        const deptCode = user.studentId.substring(2, 6);
+                        const facultyName = deptMapping[deptCode];
+                        if (facultyName) {
+                            user.faculty = facultyName;
+                        }
+                    }
+
+                    // Unified Profile Layout
+                    // Check if StudentId is empty to determine if it should be editable
+                    const isStudentIdMissing = !user.studentId;
+                    const studentIdReadOnly = isStudentIdMissing ? '' : 'readonly';
+                    const studentIdBg = isStudentIdMissing ? '#fff' : '#f0f0f0';
+                    const studentIdClass = isStudentIdMissing ? 'form-control editable-field' : 'form-control';
+
+                    // Display user info as a SINGLE unified form (Right Column)
+                    userInfoContainer.innerHTML = `
+                        <div class="user-info-form">
+                            <!-- Full Name -->
+                            <div class="form-group">
+                                <label class="form-label">Họ và tên <span style="color: red;">*</span></label>
+                                <input type="text" id="editFullName" class="form-control editable-field" value="${user.fullName || ''}" readonly>
+                            </div>
+
+                            <!-- Student ID -->
+                            <div class="form-group">
+                                <label class="form-label">Mã số sinh viên ${isStudentIdMissing ? '<span style="color: red;">* (Cần cập nhật)</span>' : ''}</label>
+                                <input type="text" id="editStudentId" class="${studentIdClass}" value="${user.studentId || ''}" ${studentIdReadOnly} style="background: ${studentIdBg};" placeholder="Nhập MSSV">
+                            </div>
+
+                            <!-- Class -->
+                            <div class="form-group">
+                                <label class="form-label">Lớp</label>
+                                <input type="text" id="editClassName" class="form-control editable-field" value="${user.className || ''}" readonly>
+                            </div>
+
+                            <!-- Faculty -->
+                            <div class="form-group">
+                                <label class="form-label">Khoa / Viện</label>
+                                <input type="text" id="editFaculty" class="form-control" value="${user.faculty || ''}" readonly style="background: #f0f0f0;">
+                            </div>
+
+                            <!-- Major -->
+                            <div class="form-group">
+                                <label class="form-label">Chuyên ngành</label>
+                                <input type="text" id="editMajor" class="form-control editable-field" value="${user.major || ''}" readonly>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" id="editEmail" class="form-control editable-field" value="${user.email || ''}" readonly>
+                            </div>
+
+                            <!-- Academic Year -->
+                            <div class="form-group">
+                                <label class="form-label">Niên khóa</label>
+                                <input type="text" id="editAcademicYear" class="form-control" value="${user.studentId ? '20' + user.studentId.substring(0, 2) : ''}" readonly style="background: #f0f0f0;">
+                            </div>
+
+                            <!-- Role -->
+                            <div class="form-group">
+                                <label class="form-label">Vai trò</label>
+                                <input type="text" class="form-control" value="${user.role}" readonly style="background: #f0f0f0;">
+                            </div>
+                        </div>
+                    `;
+
+                    // Auto-fill Logic for MSSV
+                    if (isStudentIdMissing) {
+                         const studentIdInput = document.getElementById('editStudentId');
+                         studentIdInput.addEventListener('input', (e) => {
+                             const val = e.target.value;
+                             if (val.length >= 2) {
+                                 const year = '20' + val.substring(0, 2);
+                                 document.getElementById('editAcademicYear').value = year;
+                             }
+                             if (val.length >= 6) {
+                                 const deptCode = val.substring(2, 6);
+                                 const faculty = deptMapping[deptCode];
+                                 if (faculty) {
+                                     document.getElementById('editFaculty').value = faculty;
+                                 }
+                             }
+                         });
+                    }
+
+
+                    // Auto-fill SV5T Form
+                    if (document.getElementById('sv5tName')) {
+                        document.getElementById('sv5tName').value = user.fullName || '';
+                        document.getElementById('sv5tStudentId').value = user.studentId || '';
+                        document.getElementById('sv5tMajor').value = user.major || '';
+                    }
+
+                    // Auto-fill Activity Form
+                    if (document.getElementById('actStudentName')) {
+                        document.getElementById('actStudentName').value = user.fullName || '';
+                        document.getElementById('actStudentId').value = user.studentId || '';
+                    }
+
+                } else {
+                    console.warn('User not logged in or session expired');
+                    // Not logged in
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('Error fetching user info:', error);
+                userInfoContainer.innerHTML = '<div class="error">Có lỗi xảy ra khi tải thông tin. Vui lòng thử lại sau. <br> Chi tiết lỗi: ' + error.message + '</div>';
+            }
+
+            // Profile Edit Logic
+            const btnEditProfile = document.getElementById('btnEditProfile');
+            const btnCancelEdit = document.getElementById('btnCancelEdit');
+            const btnSaveProfile = document.getElementById('btnSaveProfile');
+            const btnUploadAvatar = document.getElementById('btnUploadAvatar');
+            const avatarInput = document.getElementById('avatarInput');
+
+            function toggleEditMode(enable) {
+                isEditMode = enable;
+                const editableFields = document.querySelectorAll('.editable-field');
+
+                if (enable) {
+                    editableFields.forEach(field => field.removeAttribute('readonly'));
+                    btnEditProfile.style.display = 'none';
+                    btnCancelEdit.style.display = 'inline-flex';
+                    btnSaveProfile.style.display = 'inline-flex';
+                    btnUploadAvatar.style.display = 'inline-flex';
+                } else {
+                    editableFields.forEach(field => field.setAttribute('readonly', true));
+                    btnEditProfile.style.display = 'inline-flex';
+                    btnCancelEdit.style.display = 'none';
+                    btnSaveProfile.style.display = 'none';
+                    btnUploadAvatar.style.display = 'none';
+                }
+            }
+
+            if (btnEditProfile) {
+                btnEditProfile.addEventListener('click', () => toggleEditMode(true));
+            }
+
+            if (btnCancelEdit) {
+                btnCancelEdit.addEventListener('click', () => {
+                    if (confirm('Hủy các thay đổi?')) {
+                        // Reset to original values
+                        document.getElementById('editFullName').value = currentUserData.fullName || '';
+                        document.getElementById('editClassName').value = currentUserData.className || '';
+                        document.getElementById('editMajor').value = currentUserData.major || '';
+                        document.getElementById('editEmail').value = currentUserData.email || '';
+
+                        // Reset avatar
+                        const avatarImg = document.getElementById('userAvatar');
+                        if (currentUserData.avatarUrl) {
+                            avatarImg.src = currentUserData.avatarUrl;
+                        } else {
+                            avatarImg.src = 'https://via.placeholder.com/150?text=Avatar';
+                        }
+                        pendingAvatarBase64 = null;
+
+                        toggleEditMode(false);
+                    }
+                });
+            }
+
+            if (btnUploadAvatar) {
+                btnUploadAvatar.addEventListener('click', () => {
+                    avatarInput.click();
+                });
+            }
+
+            if (avatarInput) {
+                avatarInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        alert('Vui lòng chọn file ảnh');
+                        return;
+                    }
+
+                    // Validate file size (max 2MB)
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('Kích thước ảnh không được vượt quá 2MB');
+                        return;
+                    }
+
+                    // Convert to Base64
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        document.getElementById('userAvatar').src = event.target.result;
+                        pendingAvatarBase64 = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            if (btnSaveProfile) {
+                btnSaveProfile.addEventListener('click', async () => {
+                    const fullName = document.getElementById('editFullName').value.trim();
+                    const className = document.getElementById('editClassName').value.trim();
+                    const major = document.getElementById('editMajor').value.trim();
+                    const email = document.getElementById('editEmail').value.trim();
+
+                    // Validation
+                    if (!fullName) {
+                        alert('Họ và tên không được để trống');
+                        return;
+                    }
+
+                    const data = {
+                        fullName,
+                        className: className || null,
+                        major: major || null,
+                        email: email || null,
+                        avatarUrl: pendingAvatarBase64,
+                        studentId: document.getElementById('editStudentId').value.trim() || null,
+                        faculty: document.getElementById('editFaculty').value.trim() || null
+                    };
+
+                    btnSaveProfile.disabled = true;
+                    btnSaveProfile.textContent = 'Đang lưu...';
+
+                    try {
+                        const response = await fetch('/api/account/update-profile', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            showToast(result.message);
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showToast(result.message || 'Cập nhật thất bại', 'error');
+                        }
+                    } catch (error) {
+                        showToast('Lỗi kết nối server', 'error');
+                    } finally {
+                        btnSaveProfile.disabled = false;
+                        btnSaveProfile.textContent = 'Lưu thay đổi';
+                    }
+                });
+            }
+
+            // Logout Logic
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    await fetch('/api/account/logout', { method: 'POST' });
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error('Logout failed:', error);
+                }
+            });
+
+            // Load SV5T History
+            async function loadSV5THistory() {
+                const historyContainer = document.getElementById('sv5tHistoryContainer');
+                if (!historyContainer) return;
+
+                try {
+                    const response = await fetch('/api/sv5t/history');
+                    if (response.ok) {
+                        const history = await response.json();
+                        if (history.length === 0) {
+                            historyContainer.innerHTML = '<p style="color: #666; font-style: italic;">Chưa có lịch sử đăng ký nào.</p>';
+                            return;
+                        }
+
+                        let html = '<div class="history-list">';
+                        history.forEach(item => {
+                            const date = new Date(item.createdAt).toLocaleDateString('vi-VN');
+                            let statusText = 'Đang chờ duyệt';
+                            let statusColor = '#ffb300'; // Orange for pending
+
+                            if (item.status === 'Approved') {
+                                statusText = 'Đã duyệt';
+                                statusColor = '#4caf50'; // Green
+                            } else if (item.status === 'Rejected') {
+                                statusText = 'Từ chối';
+                                statusColor = '#f44336'; // Red
+                            }
+
+                            html += `
+                                <div class="history-item" style="background: #f8f9fa; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; border-left: 4px solid ${statusColor}; border: 1px solid #eee; border-left-width: 4px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                                        <strong style="color: #333;">Năm học: ${item.academicYear}</strong>
+                                        <span style="font-weight: bold; color: ${statusColor};">${statusText}</span>
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #555;">
+                                        <p style="margin: 0.2rem 0;"><strong>Chuyên ngành:</strong> ${item.major}</p>
+                                        <p style="margin: 0.2rem 0;"><strong>Cấp đăng ký:</strong> ${item.level || 'Chưa cập nhật'}</p>
+                                        <p style="margin: 0.2rem 0;"><strong>Ngày đăng ký:</strong> ${date}</p>
+                                        <p style="margin: 0.2rem 0;"><strong>Kiến nghị:</strong> ${item.reason}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        historyContainer.innerHTML = html;
+                    } else {
+                        historyContainer.innerHTML = '<p class="error">Không thể tải lịch sử.</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading history:', error);
+                    historyContainer.innerHTML = '<p class="error">Lỗi kết nối.</p>';
+                }
+            }
+
+            // Call load history initially
+            if (document.getElementById('sv5tHistoryContainer')) {
+                loadSV5THistory();
+            }
+
+            // SV5T Form Submission
+            const sv5tForm = document.getElementById('sv5tForm');
+            if (sv5tForm) {
+                sv5tForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const submitBtn = sv5tForm.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.textContent;
+                    submitBtn.textContent = 'Đang xử lý...';
+                    submitBtn.disabled = true;
+
+                    const data = {
+                        studentName: document.getElementById('sv5tName').value,
+                        studentId: document.getElementById('sv5tStudentId').value,
+                        major: document.getElementById('sv5tMajor').value,
+                        academicYear: document.getElementById('sv5tYear').value,
+                        reason: document.getElementById('sv5tReason').value,
+                        level: document.querySelector('input[name="sv5tLevel"]:checked')?.value || ''
+                    };
+
+                    try {
+                        const response = await fetch('/api/sv5t/register', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            showToast(result.message);
+                            sv5tForm.reset();
+                            // Re-fill read-only data
+                            document.getElementById('sv5tName').value = data.studentName;
+                            document.getElementById('sv5tStudentId').value = data.studentId;
+                            document.getElementById('sv5tMajor').value = data.major;
+
+                            // Reload history
+                            loadSV5THistory();
+                        } else {
+                            showToast(result.message || 'Có lỗi xảy ra', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error submitting form:', error);
+                        showToast('Có lỗi xảy ra khi kết nối đến máy chủ', 'error');
+                    } finally {
+                        submitBtn.textContent = originalBtnText;
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+
+            // --- Activity Logic ---
+            const btnAddActivity = document.getElementById('btnAddActivity');
+            const btnCancelActivity = document.getElementById('btnCancelActivity');
+            const activityFormContainer = document.getElementById('activityFormContainer');
+            const activityForm = document.getElementById('activityForm');
+            const activitiesList = document.getElementById('activitiesList');
+
+            if (btnAddActivity) {
+                btnAddActivity.addEventListener('click', () => {
+                    activityFormContainer.style.display = 'block';
+                    btnAddActivity.style.display = 'none';
+                });
+            }
+
+            if (btnCancelActivity) {
+                btnCancelActivity.addEventListener('click', () => {
+                    activityFormContainer.style.display = 'none';
+                    btnAddActivity.style.display = 'block';
+                    activityForm.reset();
+                });
+            }
+
+            async function loadActivities() {
+                try {
+                    const response = await fetch('/api/studentactivity');
+                    if (response.ok) {
+                        const activities = await response.json();
+                        renderActivities(activities);
+                    } else {
+                        activitiesList.innerHTML = '<p class="error">Không thể tải dữ liệu.</p>';
+                    }
+                } catch (error) {
+                    console.error('Error loading activities:', error);
+                    activitiesList.innerHTML = '<p class="error">Lỗi kết nối.</p>';
+                }
+            }
+
+            function renderActivities(activities) {
+                if (!activities || activities.length === 0) {
+                    activitiesList.innerHTML = '<p style="font-style: italic; color: #666;">Chưa có hoạt động nào được ghi nhận.</p>';
+                    return;
+                }
+
+                // Group by Academic Year
+                const groups = {};
+                activities.forEach(act => {
+                    if (!groups[act.academicYear]) groups[act.academicYear] = [];
+                    groups[act.academicYear].push(act);
+                });
+
+                // Sort years descending
+                const sortedYears = Object.keys(groups).sort().reverse();
+
+                let html = '';
+                sortedYears.forEach(year => {
+                    html += `
+            <div class="activity-block" style="margin-bottom: 2rem;">
+                <h4 style="background: #eee; padding: 0.5rem 1rem; border-radius: 4px; border-left: 4px solid var(--primary); margin-bottom: 1rem;">
+                    Năm học: ${year}
+                </h4>
+                <div class="activity-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+        `;
+
+                    groups[year].forEach(act => {
+                        const date = new Date(act.participationDate).toLocaleDateString('vi-VN');
+                        html += `
+                <div class="activity-item" style="border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="height: 160px; overflow: hidden; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                        <img src="${act.imageUrl}" alt="${act.activityName}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                    </div>
+                    <div style="padding: 1rem;">
+                        <h5 style="margin: 0 0 0.5rem 0; color: #333; font-size: 1rem; line-height: 1.4;">${act.activityName}</h5>
+                        <p style="margin: 0; font-size: 0.85rem; color: #666;">📅 ${date}</p>
+                    </div>
+                </div>
+            `;
+                    });
+
+                    html += `</div></div>`;
+                });
+
+                activitiesList.innerHTML = html;
+            }
+
+            if (activityForm) {
+                activityForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const submitBtn = activityForm.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.textContent = 'Đang lưu...';
+                    submitBtn.disabled = true;
+
+                    const formData = new FormData(activityForm);
+
+                    try {
+                        const response = await fetch('/api/studentactivity', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.ok) {
+                            showToast('Thêm hoạt động thành công!');
+                            activityForm.reset();
+                            activityFormContainer.style.display = 'none';
+                            btnAddActivity.style.display = 'block';
+
+                            // Re-fill user info
+                            const userResponse = await fetch('/api/account/me');
+                            if (userResponse.ok) {
+                                const user = await userResponse.json();
+                                document.getElementById('actStudentName').value = user.fullName || '';
+                                document.getElementById('actStudentId').value = user.studentId || '';
+                            }
+
+                            loadActivities();
+                        } else {
+                            showToast('Có lỗi xảy ra.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showToast('Lỗi kết nối.', 'error');
+                    } finally {
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+
+            // Initial load
+            if (document.getElementById('activitiesList')) {
+                loadActivities();
+            }
+            // Toast Notification Function
+            window.showToast = function (message, type = 'success') {
+                const container = document.getElementById('toastContainer');
+                if (!container) return;
+
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+
+                let icon = '✅';
+                if (type === 'error') icon = '❌';
+                if (type === 'info') icon = 'ℹ️';
+
+                toast.innerHTML = `
+                    <div class="toast-icon">${icon}</div>
+                    <div class="toast-message">${message}</div>
+                `;
+
+                container.appendChild(toast);
+
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+                    toast.addEventListener('animationend', () => {
+                        toast.remove();
+                    });
+                }, 3000);
+            };
+
+            // Override alert for convenience (optional, but requested behavior is to replace alert)
+            // window.alert = function(msg) { showToast(msg, 'info'); }
+
+        });
+    </script>
+    <!-- SignalR Client Library - Must load BEFORE community.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+    <script src="js/community.js"></script>
+    <!-- Smart Study Logic -->
+    <script src="js/smart-study.js"></script>
+</body>
+
+</html>
