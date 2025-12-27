@@ -1,45 +1,36 @@
-# StudyMate - Hỗ Trợ Học Tập Hutech
+## StudyMate – Tư vấn, hỗ trợ sinh viên
+
 Chờ xíu xiu cho trang load nha | Bạn có thể truy cập dự án tại đây nè: <a href="https://studymate-bior.onrender.com" target="_blank">StudyMate</a>
 
-## Giới thiệu
-StudyMate là một ứng dụng web được thiết kế để hỗ trợ sinh viên Hutech trong việc quản lý học tập, theo dõi điểm số và kết nối cộng đồng.
+### Giới thiệu
+StudyMate là một ứng dụng web được thiết kế để hỗ trợ sinh viên HUTECH
+trong việc quản lý học tập, theo dõi điểm số và kết nối cộng đồng.
+
 
 ## Tính năng chính
-*   **Dự đoán điểm số:** Nhập điểm hiện tại để tính toán điểm cần thiết cho mục tiêu GPA.
-*   **Lộ trình học tập:** Gợi ý lộ trình học tập dựa trên chuyên ngành.
-*   **Cộng đồng:** Nơi sinh viên trao đổi, chia sẻ tài liệu và thảo luận.
-*   **Quản lý tài khoản:** Cập nhật thông tin cá nhân, đồng bộ MSSV.
-*   **Tích hợp AI:** Sử dụng AI để gợi ý và hỗ trợ giải đáp thắc mắc.
+
+### Học tập & Đào tạo
+*   **Dự đoán điểm số:** Tính toán điểm cần đạt để đạt mục tiêu GPA mong muốn.
+*   **Lộ trình học tập:** Gợi ý môn học và lộ trình dựa trên chuyên ngành và kết quả hiện tại.
+*   **Tra cứu quy chế:** Tích hợp Sổ tay sinh viên, giải đáp thắc mắc về tín chỉ, quy định.
+*   **Import bảng điểm:** Hỗ trợ nhập dữ liệu điểm số nhanh chóng từ file Excel.
+*   **Ôn tập trắc nghiệm (AI):** Tự động tạo bài kiểm tra kiến thức theo chủ đề nhờ AI.
+
+### Rèn luyện & Phong trào
+*   **Sinh viên 5 Tốt:** Hệ thống đăng ký, xét duyệt và theo dõi tiêu chí danh hiệu SV5T.
+*   **Hoạt động ngoại khóa:** Cập nhật tin tức và quản lý điểm rèn luyện cá nhân.
+*   **Tập thể tiên tiến:** Hỗ trợ tính điểm và theo dõi tiêu chí lớp chi đoàn tiên tiến.
+
+### Cộng đồng & Kết nối
+*   **Diễn đàn sinh viên:** Trao đổi, thảo luận và chia sẻ tài liệu học tập (Real-time).
+*   **Quản lý hồ sơ:** Đồng bộ thông tin cá nhân, MSSV và cập nhật ảnh đại diện.
 
 ## Công nghệ sử dụng
 *   **Backend:** ASP.NET Core (C#)
 *   **Database:** MongoDB
 *   **Frontend:** HTML, CSS, JavaScript (Vanilla + SignalR)
-*   **AI:** Groq API
+*   **AI:** Groq API, Llama 3
 *   **Authentication:** Google OAuth, JWTCookie
-
-## Cài đặt và Chạy ứng dụng
-
-### Yêu cầu
-*   .NET SDK 6.0 trở lên
-*   MongoDB (Local hoặc Atlas)
-
-### Các bước thực hiện
-1.  **Clone repository:**
-    ```bash
-    git clone https://github.com/chunhanhoa/StudyMate.git
-    cd StudyMate
-    ```
-
-2.  **Cấu hình môi trường:**
-    *   Tạo file `appsettings.json` (nếu chưa có) và cấu hình connection string MongoDB.
-    *   Cấu hình Google Client ID/Secret và Groq API Key trong biến môi trường hoặc `appsettings.json` (Lưu ý: Không commit file chứa key lên git).
-
-3.  **Chạy ứng dụng:**
-    ```bash
-    dotnet run
-    ```
-    Ứng dụng sẽ chạy tại `http://localhost:5000` hoặc cổng được cấu hình.
 
 ## Triển khai (Deploy)
 Dự án đã được cấu hình để deploy lên Render.com. Đảm bảo thiết lập các biến môi trường (Environment Variables) trên Dashboard của Render:
@@ -48,6 +39,5 @@ Dự án đã được cấu hình để deploy lên Render.com. Đảm bảo th
 *   `ConnectionStrings__MongoDB`
 *   `GROQ_API_KEY`
 *   `MongoDB__DatabaseName`
-
-## Tác giả
-*   Chu Nhân Hòa | Nguyễn Thanh Hoàng | Nguyễn Khắc Huy | Ngô Trí Anh Vũ
+### Tác giả
+Chu Nhân Hòa | Nguyễn Thanh Hoàng | Nguyễn Khắc Huy | Ngô Trí Anh Vũ
