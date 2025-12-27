@@ -1,5 +1,5 @@
 # StudyMate - Hỗ Trợ Học Tập Hutech
-Chờ xíu xiu cho trang load nha | Bạn có thể truy cập dự án tại đây nè: <a href="https://studymate.onrender.com/" target="_blank">StudyMate</a>
+Chờ xíu xiu cho trang load nha | Bạn có thể truy cập dự án tại đây nè: <a href="https://studymate-bior.onrender.com" target="_blank">StudyMate</a>
 
 ## Giới thiệu
 StudyMate là một ứng dụng web được thiết kế để hỗ trợ sinh viên Hutech trong việc quản lý học tập, theo dõi điểm số và kết nối cộng đồng.
