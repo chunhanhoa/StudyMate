@@ -190,3 +190,22 @@ function retryQuiz() {
     // Re-generate quiz (fetches new questions based on existing inputs)
     generateQuiz();
 }
+
+function resetBackToSetup() {
+    // Hide result overlay
+    document.getElementById('resultOverlay').style.display = 'none';
+    
+    // Hide quiz view and show setup view
+    document.getElementById('quizView').style.display = 'none';
+    document.getElementById('setupView').style.display = 'block';
+    
+    // Reset all data
+    currentQuestions = [];
+    userAnswers = {};
+    
+    // Clear input fields (optional - người dùng có thể muốn giữ lại để chỉnh sửa)
+    // document.getElementById('topicInput').value = '';
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
